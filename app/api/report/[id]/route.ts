@@ -52,6 +52,11 @@ export async function GET(
 }
 
 // Helper function to store reports (called from analyze endpoint)
-export function storeReport(hash: string, reportData: any) {
+function storeReport(hash: string, reportData: any) {
   mockReports.set(hash, reportData)
+}
+
+// Export the function through a separate object to avoid Next.js route conflicts
+export const reportUtils = {
+  storeReport
 } 
