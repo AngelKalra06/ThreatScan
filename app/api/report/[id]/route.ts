@@ -1,8 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-
-// In a real application, this would be stored in a database
-// For now, we'll simulate a report storage
-const mockReports = new Map()
+import { getReport, hasReport } from "../utils"
 
 export async function GET(
   request: NextRequest,
@@ -16,8 +13,8 @@ export async function GET(
     // and return a mock report if not found
     
     // Check if we have a stored report
-    if (mockReports.has(reportId)) {
-      const report = mockReports.get(reportId)
+    if (hasReport(reportId)) {
+      const report = getReport(reportId)
       return NextResponse.json(report)
     }
 
@@ -49,14 +46,4 @@ export async function GET(
       { status: 500 }
     )
   }
-}
-
-// Helper function to store reports (called from analyze endpoint)
-function storeReport(hash: string, reportData: any) {
-  mockReports.set(hash, reportData)
-}
-
-// Export the function through a separate object to avoid Next.js route conflicts
-export const reportUtils = {
-  storeReport
 } 

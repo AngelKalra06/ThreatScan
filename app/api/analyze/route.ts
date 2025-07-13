@@ -156,8 +156,8 @@ export async function POST(request: NextRequest) {
       scanTime: uploadTime,
       id: hash,
     }
-    const { reportUtils } = await import("../report/[id]/route")
-    reportUtils.storeReport(hash, reportData)
+    const { storeReport } = await import("../report/utils")
+    storeReport(hash, reportData)
 
     return NextResponse.json(response)
   } catch (error) {
