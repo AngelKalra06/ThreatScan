@@ -23,7 +23,7 @@ import { Progress } from "@/components/ui/progress"
 import { Alert } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import jsPDF from "jspdf"
+import { jsPDF } from "jspdf"
 
 export default function ThreatScanApp() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
