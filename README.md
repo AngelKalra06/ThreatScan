@@ -28,15 +28,15 @@
 
 ## 🛠 Tools & Libraries
 
-file-type – Detects MIME and magic bytes to confirm real file format
+- file-type – Detects MIME and magic bytes to confirm real file format
 
-js-sha256 / crypto – Generates SHA-256 hash for threat fingerprinting
+- js-sha256 / crypto – Generates SHA-256 hash for threat fingerprinting
 
-whois-json (optional) – Checks domain metadata for embedded URLs
+- whois-json (optional) – Checks domain metadata for embedded URLs
 
-phishtank-api (optional) – Detects phishing links in documents or scripts
+- phishtank-api (optional) – Detects phishing links in documents or scripts
 
-pe-parser, binparse, pe-library – For PE header inspection (in backend)
+- pe-parser, binparse, pe-library – For PE header inspection (in backend)
 
 
 ---
