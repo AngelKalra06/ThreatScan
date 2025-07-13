@@ -2,7 +2,7 @@
 
 **ThreatScan** is a fast, simple, and powerful web-based malware detection platform. Built with a clean green-black cybersecurity UI, it allows users to upload files and instantly receive threat analysis reports powered by heuristic rules, file signature checks, and optional API integrations.
 
-🔗 Live Demo: [ThreatScan](https://threatscan.vercel.app)
+🔗 Live Demo: [https://threatscan.vercel.app](https://threatscan.vercel.app)
 
 ---
 
@@ -29,7 +29,7 @@
 ---
 
 ## 🙋‍♀️ Built By
-[Angel Kaur Kalra](linkedin.com/in/angel-kaur-kalra-1203532b0)
+[Angel Kaur Kalra](https://www.linkedin.com/in/angel-kaur-kalra-1203532b0/)
 
 ### Installation
 
