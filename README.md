@@ -50,7 +50,7 @@
 ### Installation
 
 ```bash
-git clone https://github.com/yourusername/threatscan.git
+git clone https://github.com/AngelKalra06/ThreatScan.git
 cd threatscan
 npm install
 npm run dev
