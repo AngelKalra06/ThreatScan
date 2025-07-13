@@ -16,6 +16,8 @@ import {
   Globe,
   Zap,
   Filter,
+  Linkedin,
+  Mail,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -625,140 +627,178 @@ export default function ThreatScanApp() {
       {/* About Section */}
       <div id="about" className="py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header */}
-          <div className="text-center mb-16">
-            <h2 className="text-5xl font-bold text-white mb-6">About ThreatScan</h2>
-            <p className="text-gray-300 text-xl max-w-4xl mx-auto leading-relaxed">
-              ThreatScan exists to make malware detection simple, fast, and accessible. It’s built to help anyone—from learners to professionals—scan files confidently and understand potential threats instantly.
-            </p>
-          </div>
-
-          {/* Features Grid */}
-          <div className="grid md:grid-cols-2 gap-8 mb-16">
-            <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-3 text-white">
-                  <div className="p-2 bg-cyan-500/20 rounded-lg">
-                    <Users className="w-6 h-6 text-cyan-400" />
-                  </div>
-                  <span>Built By</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-300 leading-relaxed">
-                  Angel<br/>
-                  <a href="https://linkedin.com/in/angel-kaur-kalra-1203532b0" target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline">linkedin.com/in/angel-kaur-kalra-1203532b0</a>
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-3 text-white">
-                  <div className="p-2 bg-cyan-500/20 rounded-lg">
-                    <Award className="w-6 h-6 text-cyan-400" />
-                  </div>
-                  <span>What we Do</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-300 leading-relaxed">
-                  ThreatScan analyzes uploaded files for suspicious behaviors, malicious patterns, and hidden risks. Using a mix of heuristics and lightweight analysis, it delivers clear results you can trust—no jargon, just what you need to know.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-3 text-white">
-                  <div className="p-2 bg-cyan-500/20 rounded-lg">
-                    <Globe className="w-6 h-6 text-cyan-400" />
-                  </div>
-                  <span>Why Choose Us?</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-300 leading-relaxed whitespace-pre-line">
-                  Fast & Real-Time — Instant results  
-                  Clear Reports — No complexity  
-                  Modern Tech — Built with Next.js, Python & Tailwind  
-                  Independent — Made solo, driven by passion
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-3 text-white">
-                  <div className="p-2 bg-cyan-500/20 rounded-lg">
-                    <CheckCircle className="w-6 h-6 text-cyan-400" />
-                  </div>
-                  <span>Our Vision</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-gray-300 leading-relaxed">
-                  To make threat detection part of everyday awareness—quick, understandable, and always within reach.<br/><br/>
-                  <span className="italic text-cyan-400">"Scan smart. Stay safe."</span>
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Technology Section */}
           <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-2xl">
             <CardContent className="p-12">
-              <h3 className="text-4xl font-bold text-white mb-8 text-center">Powered by Practical Security</h3>
-              <div className="grid md:grid-cols-2 gap-12">
-                <div>
-                  <h4 className="text-2xl font-semibold text-cyan-400 mb-6 flex items-center">
-                    <Zap className="w-6 h-6 mr-3" />
-                    Smart File Analysis
-                  </h4>
-                  <ul className="space-y-4">
-                    <li className="flex items-start space-x-3">
-                      <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
-                      <span className="text-gray-300">Heuristic detection for suspicious patterns</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
-                      <span className="text-gray-300">Real-time scanning for quick insights</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
-                      <span className="text-gray-300">Flags reverse shells, encoded payloads, and risky commands</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
-                      <span className="text-gray-300">Hash-based checks using SHA256</span>
-                    </li>
-                  </ul>
-                </div>
-                <div>
-                  <h4 className="text-2xl font-semibold text-cyan-400 mb-6 flex items-center">
-                    <Shield className="w-6 h-6 mr-3" />
-                    Focused on User Safety
-                  </h4>
-                  <ul className="space-y-4">
-                    <li className="flex items-start space-x-3">
-                      <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
-                      <span className="text-gray-300">File is processed locally or securely — not stored</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
-                      <span className="text-gray-300">Lightweight design with no tracking</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
-                      <span className="text-gray-300">Report is instantly downloadable, nothing saved</span>
-                    </li>
-                    <li className="flex items-start space-x-3">
-                      <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
-                      <span className="text-gray-300">Transparency in how scans work — no hidden engines</span>
-                    </li>
-                  </ul>
-                </div>
+              {/* Header */}
+              <div className="text-center mb-16">
+                <h2 className="text-5xl font-bold text-white mb-6">About ThreatScan</h2>
+                <p className="text-gray-300 text-xl max-w-4xl mx-auto leading-relaxed">
+                ThreatScan is a modern web-based tool that helps users detect malware in files quickly and easily. It's designed for learners, developers, and anyone curious about how malware behaves. It offers a fast and simple way to scan, assess, and download detailed threat reports.
+                
+
+          
+                </p>
               </div>
+
+              {/* Features Grid */}
+              <div className="grid md:grid-cols-2 gap-8 mb-16">
+                <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-3 text-white">
+                      <div className="p-2 bg-cyan-500/20 rounded-lg">
+                        <Award className="w-6 h-6 text-cyan-400" />
+                      </div>
+                      <span>How It Works</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-300 leading-relaxed">
+                    ThreatScan analyzes uploaded files using heuristic rules and static inspection. It checks for suspicious patterns, risky code, and known threat indicators. Each file receives a threat score and status - Clean, Suspicious, or Malicious along with a downloadable report for quick, clear insights.
+
+
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-3 text-white">
+                      <div className="p-2 bg-cyan-500/20 rounded-lg">
+                        <CheckCircle className="w-6 h-6 text-cyan-400" />
+                      </div>
+                      <span>Motivation</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-300 leading-relaxed">
+                      Built with my interest in cybersecurity, the goal was to create a simple tool that helps users understand file based threats without needing advanced technical knowledge. It's a learning project turned into something practical.
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-3 text-white">
+                      <div className="p-2 bg-cyan-500/20 rounded-lg">
+                        <Globe className="w-6 h-6 text-cyan-400" />
+                      </div>
+                      <span>Tech Stack</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ul className="text-gray-300 leading-relaxed space-y-2 text-center">
+                      <li className="flex items-center justify-center space-x-2">
+                        <span className="text-cyan-400 font-semibold">Frontend:</span>
+                        <span>TypeScript, JavaScript, Next.js</span>
+                      </li>
+                      <li className="flex items-center justify-center space-x-2">
+                        <span className="text-cyan-400 font-semibold">Styling:</span>
+                        <span>Tailwind CSS</span>
+                      </li>
+                      <li className="flex items-center justify-center space-x-2">
+                        <span className="text-cyan-400 font-semibold">UI Components:</span>
+                        <span>shadcn/ui</span>
+                      </li>
+                      <li className="flex items-center justify-center space-x-2">
+                        <span className="text-cyan-400 font-semibold">Icons:</span>
+                        <span>Lucide React</span>
+                      </li>
+                      <li className="flex items-center justify-center space-x-2">
+                        <span className="text-cyan-400 font-semibold">Deployment:</span>
+                        <span>Vercel</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl">
+                  <CardHeader>
+                    <CardTitle className="flex items-center space-x-3 text-white">
+                      <div className="p-2 bg-cyan-500/20 rounded-lg">
+                        <Users className="w-6 h-6 text-cyan-400" />
+                      </div>
+                      <span>Contact</span>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-6 text-center">
+                      <div className="flex items-center justify-center space-x-3">
+                        <a 
+                          href="https://www.linkedin.com/in/angel-kaur-kalra-1203532b0/" 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center space-x-2"
+                        >
+                          <span className="text-gray-300 font-bold text-xl">Angel Kaur Kalra</span>
+                          <Linkedin className="w-6 h-6" />
+                        </a>
+                      </div>
+                      <div className="flex items-center justify-center space-x-3">
+                        <Mail className="w-5 h-5 text-gray-400" />
+                        <a 
+                          href="mailto:kaurkalra041@gmail.com" 
+                          className="text-cyan-400 hover:text-cyan-300 transition-colors text-lg font-semibold"
+                        >
+                          kaurkalra041@gmail.com
+                        </a>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Key Features Section */}
+              <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-2xl">
+                <CardContent className="p-12">
+                  <h3 className="text-4xl font-bold text-white mb-8 text-center">Key Features</h3>
+                  <div className="grid md:grid-cols-2 gap-12">
+                    <div>
+                      <h4 className="text-2xl font-semibold text-cyan-400 mb-6 flex items-center">
+                        <Zap className="w-6 h-6 mr-3" />
+                        Core Functionality
+                      </h4>
+                      <ul className="space-y-4">
+                        <li className="flex items-start space-x-3">
+                          <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
+                          <span className="text-gray-300">File Upload Interface – Drag & drop or browse to upload suspicious files</span>
+                        </li>
+                        <li className="flex items-start space-x-3">
+                          <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
+                          <span className="text-gray-300">Real-Time Scanning – Progress-tracked threat analysis on the spot</span>
+                        </li>
+                        <li className="flex items-start space-x-3">
+                          <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
+                          <span className="text-gray-300">Threat Categorization – Clean, Suspicious, or Malicious status</span>
+                        </li>
+                        <li className="flex items-start space-x-3">
+                          <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
+                          <span className="text-gray-300">Threat Score – Accurate scoring from 0–100 with visual indicators</span>
+                        </li>
+                      </ul>
+                    </div>
+                    <div>
+                      <h4 className="text-2xl font-semibold text-cyan-400 mb-6 flex items-center">
+                        <Shield className="w-6 h-6 mr-3" />
+                        Advanced Features
+                      </h4>
+                      <ul className="space-y-4">
+                        <li className="flex items-start space-x-3">
+                          <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
+                          <span className="text-gray-300">Heuristic Analysis – Detects encoded payloads, reverse shells, suspicious strings</span>
+                        </li>
+                        <li className="flex items-start space-x-3">
+                          <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
+                          <span className="text-gray-300">Detailed Reports – Downloadable TXT & PDF reports with full scan details</span>
+                        </li>
+                        <li className="flex items-start space-x-3">
+                          <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
+                          <span className="text-gray-300">Dark Cyber UI – Built with a green-black gradient design</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </CardContent>
           </Card>
         </div>
