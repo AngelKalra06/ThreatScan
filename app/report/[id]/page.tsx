@@ -157,7 +157,7 @@ export default function ReportPage() {
   // Download as PDF
   const handleDownloadPdf = () => {
     if (!report) return
-    const doc = new jsPDF()
+    const doc = new jsPDF() as any
     doc.setFontSize(16)
     doc.text('Security Scan Report', 10, 15)
     doc.setFontSize(12)

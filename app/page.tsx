@@ -470,7 +470,7 @@ export default function ThreatScanApp() {
                               <Button
                                 onClick={() => {
                                   // PDF download
-                                  const doc = new jsPDF()
+                                  const doc = new jsPDF() as any
                                   doc.setFontSize(20)
                                   doc.setTextColor(0, 153, 255)
                                   doc.text('Security Scan Report', 10, 20)
