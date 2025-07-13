@@ -26,6 +26,8 @@
 - **Icons**: Lucide React
 - **Deployment**: Vercel
 
+---
+
 ## 🛠 Tools & Libraries
 
 - file-type – Detects MIME and magic bytes to confirm real file format
@@ -38,11 +40,12 @@
 
 - pe-parser, binparse, pe-library – For PE header inspection (in backend)
 
-
 ---
 
 ## 🙋‍♀️ Built By
 [Angel Kaur Kalra](https://www.linkedin.com/in/angel-kaur-kalra-1203532b0/)
+
+---
 
 ### Installation
 
