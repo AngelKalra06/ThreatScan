@@ -20,11 +20,24 @@
 
 ## ⚙️ Tech Stack
 
-- **Frontend**: Next.js 15
+- **Frontend**: TypeScript, JavaScript, Next.js 15
 - **Styling**: Tailwind CSS
 - **UI Components**: [shadcn/ui](https://ui.shadcn.com/)
 - **Icons**: Lucide React
 - **Deployment**: Vercel
+
+## 🛠 Tools & Libraries
+
+file-type – Detects MIME and magic bytes to confirm real file format
+
+js-sha256 / crypto – Generates SHA-256 hash for threat fingerprinting
+
+whois-json (optional) – Checks domain metadata for embedded URLs
+
+phishtank-api (optional) – Detects phishing links in documents or scripts
+
+pe-parser, binparse, pe-library – For PE header inspection (in backend)
+
 
 ---
 
