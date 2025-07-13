@@ -685,9 +685,6 @@ video {
 .grid {
   display: grid;
 }
-.hidden {
-  display: none;
-}
 .h-10 {
   height: 2.5rem;
 }
@@ -898,9 +895,6 @@ video {
 }
 .whitespace-nowrap {
   white-space: nowrap;
-}
-.whitespace-pre-line {
-  white-space: pre-line;
 }
 .break-all {
   word-break: break-all;
@@ -1278,9 +1272,6 @@ video {
 }
 .font-semibold {
   font-weight: 600;
-}
-.italic {
-  font-style: italic;
 }
 .leading-none {
   line-height: 1;

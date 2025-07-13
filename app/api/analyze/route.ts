@@ -16,6 +16,7 @@ function calculateEntropy(buf: Buffer) {
 
 export async function POST(request: NextRequest) {
   try {
+    // Set a higher limit for this specific route
     const formData = await request.formData()
     const file = formData.get("file") as File
 
@@ -23,9 +24,23 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 })
     }
 
+    // Check file size limit (100MB)
+    const maxSize = 100 * 1024 * 1024
+    if (file.size > maxSize) {
+      return NextResponse.json({ error: "File too large. Maximum size is 100MB." }, { status: 413 })
+    }
+
     // Convert file to buffer for analysis
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
+    let bytes: ArrayBuffer
+    let buffer: Buffer
+    
+    try {
+      bytes = await file.arrayBuffer()
+      buffer = Buffer.from(bytes)
+    } catch (error) {
+      console.error("Error reading file:", error)
+      return NextResponse.json({ error: "Error reading file. File may be corrupted or too large." }, { status: 500 })
+    }
 
     // Generate SHA256 hash
     const hash = crypto.createHash("sha256").update(buffer).digest("hex")
@@ -48,64 +63,85 @@ export async function POST(request: NextRequest) {
     const suspiciousIndicators: string[] = []
     const detectionRulesTriggered: string[] = []
 
-    // Suspicious strings
-    const suspiciousStrings = [
-      "powershell",
-      "cmd.exe",
-      "base64",
-      "eval",
-      "exec",
-      "system",
-      "shell",
-      "download",
-      "http://",
-      "ftp://",
-      "bitcoin",
-      "crypto",
-      "taskkill",
-      "system32",
-      "admin",
-      "reverse shell",
-      "nc.exe",
-      "/bin/sh",
-      "bash -i",
-      "whoami",
-      "net user",
-      "reg add",
-      "reg delete",
-      "schtasks",
-      "at.exe",
-      "sc.exe",
-      "wmic",
-      "vssadmin",
-      "bypass",
-      "encodedcommand",
-      "-enc",
-      "Invoke-Expression",
-      "Invoke-WebRequest"
-    ]
-    suspiciousStrings.forEach((str) => {
-      if (buffer.toString("utf8").toLowerCase().includes(str)) {
-        suspiciousIndicators.push(`Contains suspicious string: ${str}`)
-        detectionRulesTriggered.push("SUSPICIOUS_STRING_DETECTED")
+    // Check if file is text-based or binary
+    const isTextFile = ["txt", "log", "md", "json", "xml", "html", "css", "js", "py", "java", "c", "cpp", "h", "bat", "ps1", "sh"].includes(fileType)
+    const isDocumentFile = ["doc", "docx", "pdf", "rtf"].includes(fileType)
+    
+    // Only perform string analysis on text-based files or if we can safely convert to string
+    if (isTextFile || isDocumentFile) {
+      try {
+        const fileContent = buffer.toString("utf8")
+        
+        // Suspicious strings
+        const suspiciousStrings = [
+          "powershell",
+          "cmd.exe",
+          "base64",
+          "eval",
+          "exec",
+          "system",
+          "shell",
+          "download",
+          "http://",
+          "ftp://",
+          "bitcoin",
+          "crypto",
+          "taskkill",
+          "system32",
+          "admin",
+          "reverse shell",
+          "nc.exe",
+          "/bin/sh",
+          "bash -i",
+          "whoami",
+          "net user",
+          "reg add",
+          "reg delete",
+          "schtasks",
+          "at.exe",
+          "sc.exe",
+          "wmic",
+          "vssadmin",
+          "bypass",
+          "encodedcommand",
+          "-enc",
+          "Invoke-Expression",
+          "Invoke-WebRequest"
+        ]
+        
+        suspiciousStrings.forEach((str) => {
+          if (fileContent.toLowerCase().includes(str)) {
+            suspiciousIndicators.push(`Contains suspicious string: ${str}`)
+            detectionRulesTriggered.push("SUSPICIOUS_STRING_DETECTED")
+          }
+        })
+
+        // System folder/admin tool usage
+        if (fileContent.toLowerCase().includes("system32")) {
+          suspiciousIndicators.push("Access to system32 folder")
+          detectionRulesTriggered.push("SYSTEM_FOLDER_ACCESS")
+        }
+        if (fileContent.toLowerCase().includes("taskkill")) {
+          suspiciousIndicators.push("Uses 'taskkill' command")
+          detectionRulesTriggered.push("ADMIN_TOOL_USAGE")
+        }
+      } catch (error) {
+        console.warn("Could not analyze file content as text:", error)
+        // Continue with other analysis methods
       }
-    })
-
-    // System folder/admin tool usage
-    if (buffer.toString("utf8").toLowerCase().includes("system32")) {
-      suspiciousIndicators.push("Access to system32 folder")
-      detectionRulesTriggered.push("SYSTEM_FOLDER_ACCESS")
-    }
-    if (buffer.toString("utf8").toLowerCase().includes("taskkill")) {
-      suspiciousIndicators.push("Uses 'taskkill' command")
-      detectionRulesTriggered.push("ADMIN_TOOL_USAGE")
     }
 
-    // Fix: Use file.size instead of fileSize, and move calculateEntropy outside POST
-    const entropy = calculateEntropy(buffer)
-    if (entropy > 7.5) {
-      suspiciousIndicators.push("High file entropy (possible obfuscation or packed binary)")
-      detectionRulesTriggered.push("HIGH_ENTROPY_DETECTED")
+    // Calculate entropy safely
+    let entropy = 0
+    try {
+      entropy = calculateEntropy(buffer)
+      if (entropy > 7.5) {
+        suspiciousIndicators.push("High file entropy (possible obfuscation or packed binary)")
+        detectionRulesTriggered.push("HIGH_ENTROPY_DETECTED")
+      }
+    } catch (error) {
+      console.warn("Could not calculate entropy:", error)
+      // Continue without entropy analysis
     }
 
     // Threat scoring
@@ -151,13 +187,18 @@ export async function POST(request: NextRequest) {
     }
 
     // Store the report for later retrieval
-    const reportData = {
-      ...response,
-      scanTime: uploadTime,
-      id: hash,
+    try {
+      const reportData = {
+        ...response,
+        scanTime: uploadTime,
+        id: hash,
+      }
+      const { storeReport } = await import("../report/utils")
+      storeReport(hash, reportData)
+    } catch (error) {
+      console.warn("Could not store report:", error)
+      // Continue without storing report
     }
-    const { storeReport } = await import("../report/utils")
-    storeReport(hash, reportData)
 
     return NextResponse.json(response)
   } catch (error) {

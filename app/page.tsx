@@ -64,9 +64,9 @@ export default function ThreatScanApp() {
     if (!selectedFile) return
 
     // File validation
-    const maxSize = 50 * 1024 * 1024 // 50MB
+    const maxSize = 100 * 1024 * 1024 // 100MB
     if (selectedFile.size > maxSize) {
-      alert("File size too large. Please upload a file smaller than 50MB.")
+      alert("File size too large. Please upload a file smaller than 100MB.")
       return
     }
 
@@ -117,7 +117,8 @@ export default function ThreatScanApp() {
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        const errorData = await response.json().catch(() => ({ error: "Unknown error" }))
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
       }
 
       const result = await response.json()
@@ -151,7 +152,13 @@ export default function ThreatScanApp() {
       console.error("Analysis failed:", error)
       clearInterval(progressInterval)
       setProgress(0)
-      alert("Analysis failed. Please try again.")
+      
+      // Show more specific error message
+      let errorMessage = "Analysis failed. Please try again."
+      if (error instanceof Error) {
+        errorMessage = error.message || errorMessage
+      }
+      alert(errorMessage)
     } finally {
       setIsAnalyzing(false)
     }
