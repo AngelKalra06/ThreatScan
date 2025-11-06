@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import { useRequireAuth, useAuth } from "@/app/context/AuthContext"
 import {
   Shield,
   Upload,
@@ -28,6 +29,9 @@ import { Input } from "@/components/ui/input"
 import { jsPDF } from "jspdf"
 
 export default function ThreatScanApp() {
+  useRequireAuth()
+  const { userId } = useAuth()
+  // Note: Avoid early returns before declaring all hooks to keep hook order stable
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisResult, setAnalysisResult] = useState<any>(null)
@@ -42,11 +46,12 @@ export default function ThreatScanApp() {
   }>>([])
 
   React.useEffect(() => {
-    const storedHistory = localStorage.getItem('reportsHistory')
+    if (!userId) return
+    const storedHistory = localStorage.getItem(`reportsHistory_${userId}`)
     if (storedHistory) {
       setReportsHistory(JSON.parse(storedHistory))
     }
-  }, [])
+  }, [userId])
 
   React.useEffect(() => {
     window.scrollTo(0, 0)
@@ -128,13 +133,15 @@ export default function ThreatScanApp() {
 
       setAnalysisResult(result)
 
-      // Save full report to localStorage
+      if (!userId) return
+
+      // Save full report to localStorage with user-specific key
       localStorage.setItem(
-        `report_${result.hash}`,
+        `report_${userId}_${result.hash}`,
         JSON.stringify(result)
       )
 
-      // Update reports history in localStorage
+      // Update reports history in localStorage with user-specific key
       const updatedHistory = [
         {
           id: result.hash,
@@ -147,7 +154,7 @@ export default function ThreatScanApp() {
         ...reportsHistory.slice(0, 9)
       ]
       setReportsHistory(updatedHistory)
-      localStorage.setItem('reportsHistory', JSON.stringify(updatedHistory))
+      localStorage.setItem(`reportsHistory_${userId}`, JSON.stringify(updatedHistory))
     } catch (error) {
       console.error("Analysis failed:", error)
       clearInterval(progressInterval)
@@ -220,53 +227,9 @@ export default function ThreatScanApp() {
       {/* Main Scanner Section */}
       <div id="scanner" className="pt-28 pb-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Hero Section with Side Navigation */}
-          <div className="grid lg:grid-cols-12 gap-8 items-start justify-start">
-            {/* Left Navigation */}
-            <div className="lg:col-span-3 mr-20">
-              <div className="self-center">
-                {/* Brand */}
-                <div className="bg-gradient-to-r from-cyan-500 to-cyan-400 p-6 rounded-2xl mb-8 shadow-xl min-w-[220px] w-fit">
-                  <div className="flex items-center space-x-4">
-                    <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-                      <Shield className="w-8 h-8 text-white" />
-                    </div>
-                    <div>
-                      <h2 className="text-2xl font-bold text-white">ThreatScan</h2>
-                      <p className="text-white text-sm">Malware Detection</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Navigation Links */}
-                <nav className="space-y-3 mb-8">
-                  <button
-                    onClick={() => scrollToSection("scanner")}
-                    className="flex items-center space-x-4 px-6 py-4 text-xl text-cyan-400 hover:text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500/20 border border-transparent rounded-xl transition-all duration-200 backdrop-blur-sm w-full text-left"
-                  >
-                    <Search className="w-5 h-5" />
-                    <span>Scan Files</span>
-                  </button>
-                  <button
-                    onClick={() => scrollToSection("reports")}
-                    className="flex items-center space-x-4 px-6 py-4 text-gray-300 hover:text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500/20 border border-transparent rounded-xl transition-all duration-200 backdrop-blur-sm w-full text-left"
-                  >
-                    <BarChart3 className="w-5 h-5" />
-                    <span>Reports</span>
-                  </button>
-                  <button
-                    onClick={() => scrollToSection("about")}
-                    className="flex items-center space-x-4 px-6 py-4 text-gray-300 hover:text-cyan-400 hover:bg-cyan-500/10 hover:border-cyan-500/20 border border-transparent rounded-xl transition-all duration-200 backdrop-blur-sm w-full text-left"
-                  >
-                    <Users className="w-5 h-5" />
-                    <span>About</span>
-                  </button>
-                </nav>
-              </div>
-            </div>
-
-            {/* Main Content Area */}
-            <div className="lg:col-span-9 ml-8">
+          {/* Centered Scanner Card */}
+          <div className="flex justify-center">
+            <div className="w-full max-w-4xl">
               <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-2xl">
                 <CardContent className="p-12">
                   <div className="text-center mb-10">
@@ -438,6 +401,40 @@ export default function ThreatScanApp() {
                                 </a>
                               </div>
                             )}
+                            {/* Precautions Section */}
+                            {analysisResult.precautions && analysisResult.precautions.length > 0 && (
+                              <div className="p-6 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                                <h4 className="text-amber-400 font-bold text-lg mb-4 flex items-center">
+                                  <AlertTriangle className="w-5 h-5 mr-2" />
+                                  Important Precautions
+                                </h4>
+                                <ul className="space-y-2">
+                                  {analysisResult.precautions.map((precaution: string, idx: number) => (
+                                    <li key={idx} className="flex items-start space-x-3 text-amber-300">
+                                      <span className="text-amber-400 mt-1.5">⚠</span>
+                                      <span>{precaution}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+                            {/* Countermeasures Section */}
+                            {analysisResult.countermeasures && analysisResult.countermeasures.length > 0 && (
+                              <div className="p-6 bg-cyan-500/10 border border-cyan-500/20 rounded-xl">
+                                <h4 className="text-cyan-400 font-bold text-lg mb-4 flex items-center">
+                                  <Shield className="w-5 h-5 mr-2" />
+                                  Recommended Countermeasures
+                                </h4>
+                                <ul className="space-y-2">
+                                  {analysisResult.countermeasures.map((countermeasure: string, idx: number) => (
+                                    <li key={idx} className="flex items-start space-x-3 text-cyan-300">
+                                      <Shield className="w-4 h-4 text-cyan-400 mt-1 flex-shrink-0" />
+                                      <span>{countermeasure}</span>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
                             <div className="flex gap-4 pt-4">
                               <Button
                                 onClick={() => {
@@ -460,6 +457,12 @@ export default function ThreatScanApp() {
                                     ...(analysisResult.suspicious_indicators?.length > 0 ? analysisResult.suspicious_indicators.map((s: string) => `- ${s}`) : ['None']),
                                     '',
                                     `Recommendation: ${analysisResult.recommendation || "No specific recommendation available."}`,
+                                    '',
+                                    'IMPORTANT PRECAUTIONS:',
+                                    ...(analysisResult.precautions?.length > 0 ? analysisResult.precautions.map((p: string) => `⚠ ${p}`) : ['None specified']),
+                                    '',
+                                    'RECOMMENDED COUNTERMEASURES:',
+                                    ...(analysisResult.countermeasures?.length > 0 ? analysisResult.countermeasures.map((c: string) => `✓ ${c}`) : ['None specified']),
                                     analysisResult.external_report_link ? `External Report: ${analysisResult.external_report_link}` : ''
                                   ].join('\n')
                                   const blob = new Blob([txt], { type: 'text/plain' })
@@ -519,6 +522,24 @@ export default function ThreatScanApp() {
                                   if (analysisResult.external_report_link) {
                                     doc.text(`External Report: ${analysisResult.external_report_link}`, 10, y + 8)
                                   }
+                                  y = y + 20
+                                  doc.setFontSize(12)
+                                  doc.setTextColor(255, 193, 7)
+                                  doc.text('IMPORTANT PRECAUTIONS:', 10, y)
+                                  doc.setFont('helvetica', 'normal')
+                                  doc.setTextColor(40, 40, 40)
+                                  ;(analysisResult.precautions || []).forEach((p: string, i: number) => {
+                                    doc.text(`⚠ ${p}`, 14, y + 10 + i * 8)
+                                  })
+                                  y = y + 10 + (analysisResult.precautions?.length || 0) * 8 + 10
+                                  doc.setFontSize(12)
+                                  doc.setTextColor(0, 153, 255)
+                                  doc.text('RECOMMENDED COUNTERMEASURES:', 10, y)
+                                  doc.setFont('helvetica', 'normal')
+                                  doc.setTextColor(40, 40, 40)
+                                  ;(analysisResult.countermeasures || []).forEach((c: string, i: number) => {
+                                    doc.text(`✓ ${c}`, 14, y + 10 + i * 8)
+                                  })
                                   doc.save(`${analysisResult.file_name || selectedFile?.name || 'report'}.pdf`)
                                 }}
                                 className="bg-cyan-600 text-white"
@@ -548,268 +569,9 @@ export default function ThreatScanApp() {
         </div>
       </div>
 
-      {/* Reports Section */}
-      <div id="reports" className="py-20">
-        <div className="max-w-5xl mx-auto px-4">
-          <Card className="bg-gray-900/70 border border-gray-700/50 shadow-2xl">
-            <CardContent className="p-8">
-              <div className="text-center mb-12">
-                <h2 className="text-4xl font-bold text-white mb-4">Threat Analysis Reports</h2>
-                <p className="text-gray-300 text-lg">View and manage your comprehensive security scan history</p>
-              </div>
-              {/* Filters */}
-              <div className="mb-8 flex flex-col sm:flex-row gap-4 max-w-4xl mx-auto">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <Input
-                      placeholder="Search by filename or threat type..."
-                      className="pl-12 bg-gray-800/50 border-gray-700/50 text-white placeholder-gray-400 focus:border-cyan-500/50 rounded-xl h-12"
-                    />
-                  </div>
-                </div>
-                <Button
-                  variant="outline"
-                  className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 bg-transparent backdrop-blur-sm rounded-xl px-6"
-                >
-                  <Filter className="w-4 h-4 mr-2" />
-                  Advanced Filter
-                </Button>
-              </div>
-              {/* Reports List */}
-                <div className="space-y-4">
-                  <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-semibold text-white">Recent Scans ({reportsHistory.length})</h3>
-                    <Button
-                      onClick={clearHistory}
-                      variant="outline"
-                      className="border-red-500/50 text-red-400 hover:bg-red-500/10 bg-transparent backdrop-blur-sm rounded-xl"
-                    >
-                      Clear History
-                    </Button>
-                  </div>
-                {reportsHistory.length > 0 ? (
-                  <div className="grid gap-4">
-                    {reportsHistory.map((report) => (
-                      <Card key={report.id} className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl hover:shadow-2xl transition-all duration-200">
-                        <CardContent className="p-6">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                              <div className="p-3 bg-cyan-500/20 rounded-xl">
-                                <FileText className="w-6 h-6 text-cyan-400" />
-                              </div>
-                              <div>
-                                <h4 className="text-white font-semibold text-lg">{report.fileName}</h4>
-                                <p className="text-gray-400 text-sm">
-                                  {new Date(report.scanTime).toLocaleString()}
-                                </p>
-                                <p className="text-gray-500 text-xs font-mono">
-                                  {report.hash.substring(0, 16)}...
-                                </p>
-                              </div>
-                            </div>
-                            <div className="flex items-center space-x-4">
-                              <div className="text-right">
-                                <p className="text-white font-bold text-lg">{report.threatScore}/100</p>
-                                <p className="text-gray-400 text-sm">Threat Score</p>
-                              </div>
-                              <Badge className={`${getThreatBadgeColor(report.status)} text-sm px-3 py-1`}>
-                                {report.status.toUpperCase()}
-                              </Badge>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                </div>
-              ) : (
-                  <div className="text-center text-gray-400 py-12">No reports yet. Scan a file to see your report history here.</div>
-                )}
-                </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      {/* Reports Section removed for Scan page */}
 
-      {/* About Section */}
-      <div id="about" className="py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-2xl">
-            <CardContent className="p-12">
-              {/* Header */}
-              <div className="text-center mb-16">
-                <h2 className="text-5xl font-bold text-white mb-6">About ThreatScan</h2>
-                <p className="text-gray-300 text-xl max-w-4xl mx-auto leading-relaxed">
-                ThreatScan is a modern web-based tool that helps users detect malware in files quickly and easily. It's designed for learners, developers, and anyone curious about how malware behaves. It offers a fast and simple way to scan, assess, and download detailed threat reports.
-                
-
-          
-                </p>
-              </div>
-
-              {/* Features Grid */}
-              <div className="grid md:grid-cols-2 gap-8 mb-16">
-                <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl">
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-3 text-white">
-                      <div className="p-2 bg-cyan-500/20 rounded-lg">
-                        <Award className="w-6 h-6 text-cyan-400" />
-                      </div>
-                      <span>How It Works</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-300 leading-relaxed">
-                    ThreatScan analyzes uploaded files using heuristic rules and static inspection. It checks for suspicious patterns, risky code, and known threat indicators. Each file receives a threat score and status - Clean, Suspicious, or Malicious along with a downloadable report for quick, clear insights.
-
-
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl">
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-3 text-white">
-                      <div className="p-2 bg-cyan-500/20 rounded-lg">
-                        <CheckCircle className="w-6 h-6 text-cyan-400" />
-                      </div>
-                      <span>Motivation</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-300 leading-relaxed">
-                      Built with my interest in cybersecurity, the goal was to create a simple tool that helps users understand file based threats without needing advanced technical knowledge. It's a learning project turned into something practical.
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl">
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-3 text-white">
-                      <div className="p-2 bg-cyan-500/20 rounded-lg">
-                        <Globe className="w-6 h-6 text-cyan-400" />
-                      </div>
-                      <span>Tech Stack</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="text-gray-300 leading-relaxed space-y-2 text-center">
-                      <li className="flex items-center justify-center space-x-2">
-                        <span className="text-cyan-400 font-semibold">Frontend:</span>
-                        <span>TypeScript, JavaScript, Next.js</span>
-                      </li>
-                      <li className="flex items-center justify-center space-x-2">
-                        <span className="text-cyan-400 font-semibold">Styling:</span>
-                        <span>Tailwind CSS</span>
-                      </li>
-                      <li className="flex items-center justify-center space-x-2">
-                        <span className="text-cyan-400 font-semibold">UI Components:</span>
-                        <span>shadcn/ui</span>
-                      </li>
-                      <li className="flex items-center justify-center space-x-2">
-                        <span className="text-cyan-400 font-semibold">Icons:</span>
-                        <span>Lucide React</span>
-                      </li>
-                      <li className="flex items-center justify-center space-x-2">
-                        <span className="text-cyan-400 font-semibold">Deployment:</span>
-                        <span>Vercel</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
-
-                <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-xl">
-                  <CardHeader>
-                    <CardTitle className="flex items-center space-x-3 text-white">
-                      <div className="p-2 bg-cyan-500/20 rounded-lg">
-                        <Users className="w-6 h-6 text-cyan-400" />
-                      </div>
-                      <span>Contact</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6 text-center">
-                      <div className="flex items-center justify-center space-x-3">
-                        <a 
-                          href="https://www.linkedin.com/in/angel-kaur-kalra-1203532b0/" 
-                          target="_blank" 
-                          rel="noopener noreferrer" 
-                          className="text-cyan-400 hover:text-cyan-300 transition-colors flex items-center space-x-2"
-                        >
-                          <span className="text-gray-300 font-bold text-xl">Angel Kaur Kalra</span>
-                          <Linkedin className="w-6 h-6" />
-                        </a>
-                      </div>
-                      <div className="flex items-center justify-center space-x-3">
-                        <Mail className="w-5 h-5 text-gray-400" />
-                        <a 
-                          href="mailto:kaurkalra041@gmail.com" 
-                          className="text-cyan-400 hover:text-cyan-300 transition-colors text-lg font-semibold"
-                        >
-                          kaurkalra041@gmail.com
-                        </a>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Key Features Section */}
-              <Card className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 shadow-2xl">
-                <CardContent className="p-12">
-                  <h3 className="text-4xl font-bold text-white mb-8 text-center">Key Features</h3>
-                  <div className="grid md:grid-cols-2 gap-12">
-                    <div>
-                      <h4 className="text-2xl font-semibold text-cyan-400 mb-6 flex items-center">
-                        <Zap className="w-6 h-6 mr-3" />
-                        Core Functionality
-                      </h4>
-                      <ul className="space-y-4">
-                        <li className="flex items-start space-x-3">
-                          <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
-                          <span className="text-gray-300">File Upload Interface – Drag & drop or browse to upload suspicious files</span>
-                        </li>
-                        <li className="flex items-start space-x-3">
-                          <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
-                          <span className="text-gray-300">Real-Time Scanning – Progress-tracked threat analysis on the spot</span>
-                        </li>
-                        <li className="flex items-start space-x-3">
-                          <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
-                          <span className="text-gray-300">Threat Categorization – Clean, Suspicious, or Malicious status</span>
-                        </li>
-                        <li className="flex items-start space-x-3">
-                          <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
-                          <span className="text-gray-300">Threat Score – Accurate scoring from 0–100 with visual indicators</span>
-                        </li>
-                      </ul>
-                    </div>
-                    <div>
-                      <h4 className="text-2xl font-semibold text-cyan-400 mb-6 flex items-center">
-                        <Shield className="w-6 h-6 mr-3" />
-                        Advanced Features
-                      </h4>
-                      <ul className="space-y-4">
-                        <li className="flex items-start space-x-3">
-                          <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
-                          <span className="text-gray-300">Heuristic Analysis – Detects encoded payloads, reverse shells, suspicious strings</span>
-                        </li>
-                        <li className="flex items-start space-x-3">
-                          <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
-                          <span className="text-gray-300">Detailed Reports – Downloadable TXT & PDF reports with full scan details</span>
-                        </li>
-                        <li className="flex items-start space-x-3">
-                          <CheckCircle className="w-5 h-5 text-emerald-400 mt-1 flex-shrink-0" />
-                          <span className="text-gray-300">Dark Cyber UI – Built with a green-black gradient design</span>
-                        </li>
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+      {/* About Section removed for Scan page */}
     </div>
   )
 }

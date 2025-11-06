@@ -163,6 +163,59 @@ export async function POST(request: NextRequest) {
     if (threatLevel === "malicious") recommendation = "Do not run this file. It is likely malware."
     else if (threatLevel === "suspicious") recommendation = "File may be suspicious. Analyze further before running."
 
+    // Generate precautions and countermeasures based on threat level
+    const precautions: string[] = []
+    const countermeasures: string[] = []
+
+    if (threatLevel === "malicious") {
+      precautions.push(
+        "Do not execute this file under any circumstances",
+        "Immediately delete or quarantine the file",
+        "Scan your system with an updated antivirus",
+        "Do not share this file with others",
+        "Monitor your system for suspicious activity"
+      )
+      countermeasures.push(
+        "Run a full system scan with Windows Defender or your antivirus software",
+        "Check for unauthorized network connections in your firewall",
+        "Review recent System Registry changes for suspicious entries",
+        "Enable automatic Windows updates if not already enabled",
+        "Consider restoring from a clean backup if system was compromised",
+        "Change all passwords if the file was executed",
+        "Enable Firewall and ensure it's properly configured"
+      )
+    } else if (threatLevel === "suspicious") {
+      precautions.push(
+        "Do not execute this file until further analysis is completed",
+        "Keep the file isolated from your main system",
+        "Verify the source and authenticity of the file",
+        "Use a sandbox environment if analysis is needed"
+      )
+      countermeasures.push(
+        "Upload the file to VirusTotal or similar services for additional analysis",
+        "Check the digital signature of the file if available",
+        "Verify the file's checksum with the official source",
+        "Enable Windows Defender Real-time protection",
+        "Consider using a Windows Sandbox environment for testing",
+        "Monitor system logs after any interaction with the file",
+        "Back up important data before any potential execution"
+      )
+    } else {
+      precautions.push(
+        "Verify the source of the file",
+        "Keep your antivirus definitions updated",
+        "Run regular system scans"
+      )
+      countermeasures.push(
+        "Keep Windows Defender or your antivirus updated with latest definitions",
+        "Enable automatic scanning of downloaded files",
+        "Use a reputable file-sharing service if sharing files",
+        "Regularly update your operating system",
+        "Enable browser security features",
+        "Be cautious when downloading from unknown sources"
+      )
+    }
+
     // Optional: External report link (mock)
     let externalReportLink = undefined
     if (threatScore > 50) {
@@ -183,6 +236,8 @@ export async function POST(request: NextRequest) {
       suspicious_indicators: suspiciousIndicators,
       detection_rules_triggered: detectionRulesTriggered,
       recommendation,
+      precautions,
+      countermeasures,
       external_report_link: externalReportLink,
     }
 

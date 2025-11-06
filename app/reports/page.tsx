@@ -1,5 +1,7 @@
 "use client"
 
+import React from "react"
+import { useRequireAuth, useAuth } from "@/app/context/AuthContext"
 import { Shield, FileText, Clock, Search, Filter, BarChart3, Users, Zap, TrendingUp } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -7,42 +9,48 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import Link from "next/link"
 
+type HistoryItem = {
+  id: string
+  fileName: string
+  status: "clean" | "suspicious" | "malicious"
+  threatScore: number
+  scanTime: string
+  hash: string
+}
+
 export default function ReportsPage() {
-  // Mock reports data
-  const mockReports = [
-    {
-      id: "1704649200000",
-      file_name: "suspicious_file.exe",
-      threat_level: "suspicious",
-      threat_score: 65,
-      scan_time: "2025-01-07 18:15:00",
-      file_size: "546 KB",
-    },
-    {
-      id: "1704649100000",
-      file_name: "document.pdf",
-      threat_level: "clean",
-      threat_score: 5,
-      scan_time: "2025-01-07 18:10:00",
-      file_size: "2.1 MB",
-    },
-    {
-      id: "1704649000000",
-      file_name: "malware.dll",
-      threat_level: "malicious",
-      threat_score: 95,
-      scan_time: "2025-01-07 18:05:00",
-      file_size: "128 KB",
-    },
-    {
-      id: "1704648900000",
-      file_name: "installer.msi",
-      threat_level: "clean",
-      threat_score: 10,
-      scan_time: "2025-01-07 18:00:00",
-      file_size: "15.2 MB",
-    },
-  ]
+  useRequireAuth()
+  const { userId } = useAuth()
+  const [reportsHistory, setReportsHistory] = React.useState<HistoryItem[]>([])
+  const [searchQuery, setSearchQuery] = React.useState("")
+
+  React.useEffect(() => {
+    if (!userId) return
+    const storedHistory = localStorage.getItem(`reportsHistory_${userId}`)
+    if (storedHistory) {
+      setReportsHistory(JSON.parse(storedHistory))
+    }
+  }, [userId])
+
+  // Convert history items to report format for display
+  const reports = reportsHistory.map((item) => ({
+    id: item.id,
+    file_name: item.fileName,
+    threat_level: item.status,
+    threat_score: item.threatScore,
+    scan_time: new Date(item.scanTime).toLocaleString(),
+    file_size: "N/A", // File size is not stored in history, would need to load from full report
+  }))
+
+  // Filter reports based on search query
+  const filteredReports = reports.filter((report) => {
+    if (!searchQuery) return true
+    const query = searchQuery.toLowerCase()
+    return (
+      report.file_name.toLowerCase().includes(query) ||
+      report.threat_level.toLowerCase().includes(query)
+    )
+  })
 
   const getThreatBadgeColor = (level: string) => {
     switch (level) {
@@ -111,16 +119,20 @@ export default function ReportsPage() {
                   </h3>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">Today</span>
-                      <span className="font-bold text-cyan-400">4 scans</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-gray-400 text-sm">This Week</span>
-                      <span className="font-bold text-cyan-400">12 scans</span>
+                      <span className="text-gray-400 text-sm">Total Scans</span>
+                      <span className="font-bold text-cyan-400">{reportsHistory.length}</span>
                     </div>
                     <div className="flex justify-between items-center">
                       <span className="text-gray-400 text-sm">Threats Found</span>
-                      <span className="font-bold text-red-400">2</span>
+                      <span className="font-bold text-red-400">
+                        {reportsHistory.filter((r) => r.status === "malicious" || r.status === "suspicious").length}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-400 text-sm">Clean Files</span>
+                      <span className="font-bold text-emerald-400">
+                        {reportsHistory.filter((r) => r.status === "clean").length}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -143,6 +155,8 @@ export default function ReportsPage() {
                     <Input
                       placeholder="Search by filename or threat type..."
                       className="pl-12 bg-gray-800/50 border-gray-700/50 text-white placeholder-gray-400 focus:border-cyan-500/50 rounded-xl h-12"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
                     />
                   </div>
                 </div>
@@ -157,7 +171,7 @@ export default function ReportsPage() {
 
               {/* Reports Grid */}
               <div className="grid gap-6">
-                {mockReports.map((report) => (
+                {filteredReports.map((report) => (
                   <Card
                     key={report.id}
                     className="bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 hover:border-cyan-500/30 transition-all duration-300 shadow-xl"
@@ -209,7 +223,7 @@ export default function ReportsPage() {
               </div>
 
               {/* Empty State */}
-              {mockReports.length === 0 && (
+              {filteredReports.length === 0 && reportsHistory.length === 0 && (
                 <div className="text-center py-20">
                   <div className="w-24 h-24 bg-gray-800/50 rounded-full flex items-center justify-center mx-auto mb-8">
                     <FileText className="w-12 h-12 text-gray-400" />
@@ -221,6 +235,15 @@ export default function ReportsPage() {
                       Start Threat Scan
                     </Button>
                   </Link>
+                </div>
+              )}
+              {filteredReports.length === 0 && reportsHistory.length > 0 && (
+                <div className="text-center py-20">
+                  <div className="w-24 h-24 bg-gray-800/50 rounded-full flex items-center justify-center mx-auto mb-8">
+                    <Search className="w-12 h-12 text-gray-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white mb-4">No Reports Match Your Search</h3>
+                  <p className="text-gray-400 mb-8 text-lg">Try adjusting your search criteria</p>
                 </div>
               )}
             </div>

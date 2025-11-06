@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
+import { useRequireAuth, useAuth } from "@/app/context/AuthContext"
 import {
   Shield,
   FileText,
@@ -32,9 +33,14 @@ interface ReportData {
   suspiciousIndicators: string[]
   scanTime: string
   uploadTime: string
+  precautions?: string[]
+  countermeasures?: string[]
+  recommendation?: string
 }
 
 export default function ReportPage() {
+  useRequireAuth()
+  const { userId } = useAuth()
   const params = useParams()
   const router = useRouter()
   const [report, setReport] = useState<ReportData | null>(null)
@@ -42,13 +48,35 @@ export default function ReportPage() {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!userId || !params.id) return
+    
     const fetchReport = async () => {
-      // Try to load from localStorage first
-      const localReport = localStorage.getItem(`report_${params.id}`)
+      // Try to load from localStorage first with user-specific key
+      const localReport = localStorage.getItem(`report_${userId}_${params.id}`)
       if (localReport) {
-        setReport(JSON.parse(localReport))
-        setLoading(false)
-        return
+        try {
+          const parsedReport = JSON.parse(localReport)
+          // Convert the stored report format to ReportData format
+          setReport({
+            id: parsedReport.hash || params.id as string,
+            fileName: parsedReport.file_name || parsedReport.fileName || "Unknown",
+            fileSize: parsedReport.file_size || parsedReport.fileSize || "N/A",
+            fileType: parsedReport.file_type || parsedReport.fileType || "Unknown",
+            hash: parsedReport.sha256 || parsedReport.hash || params.id as string,
+            threatLevel: parsedReport.threat_level || parsedReport.status || "clean",
+            threatScore: parsedReport.threat_score || parsedReport.threatScore || 0,
+            suspiciousIndicators: parsedReport.suspicious_indicators || parsedReport.suspiciousIndicators || [],
+            scanTime: parsedReport.details?.scan_time || parsedReport.scanTime || new Date().toISOString(),
+            uploadTime: parsedReport.upload_time || parsedReport.uploadTime || new Date().toISOString(),
+            precautions: parsedReport.precautions,
+            countermeasures: parsedReport.countermeasures,
+            recommendation: parsedReport.recommendation,
+          })
+          setLoading(false)
+          return
+        } catch (err) {
+          console.error("Error parsing local report:", err)
+        }
       }
       try {
         setLoading(true)
@@ -72,11 +100,9 @@ export default function ReportPage() {
         setLoading(false)
       }
     }
-
-    if (params.id) {
-      fetchReport()
-    }
-  }, [params.id])
+    
+    fetchReport()
+  }, [params.id, userId])
 
   const getThreatColor = (status: string) => {
     switch (status) {
@@ -141,7 +167,14 @@ export default function ReportPage() {
       `Scan Time: ${new Date(report.scanTime).toLocaleString()}`,
       '',
       'Security Findings:',
-      ...report.suspiciousIndicators.map((ind, i) => `${i + 1}. ${ind}`)
+      ...report.suspiciousIndicators.map((ind, i) => `${i + 1}. ${ind}`),
+      '',
+      'IMPORTANT PRECAUTIONS:',
+      ...(report.precautions?.map((p) => `⚠ ${p}`) || []),
+      '',
+      'RECOMMENDED COUNTERMEASURES:',
+      ...(report.countermeasures?.map((c) => `✓ ${c}`) || []),
+      report.recommendation ? `\nRecommendation: ${report.recommendation}` : ''
     ].join('\n')
     const blob = new Blob([txt], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
@@ -169,9 +202,34 @@ export default function ReportPage() {
     doc.text(`Threat Score: ${report.threatScore}/100`, 10, 70)
     doc.text(`Scan Time: ${new Date(report.scanTime).toLocaleString()}`, 10, 78)
     doc.text('Security Findings:', 10, 90)
-    (report.suspiciousIndicators || []).forEach((ind: string, i: number) => {
-      doc.text(`${i + 1}. ${ind}`, 14, 98 + i * 8)
+    let y = 98
+    ;(report.suspiciousIndicators || []).forEach((ind: string, i: number) => {
+      doc.text(`${i + 1}. ${ind}`, 14, y + i * 8)
     })
+    y = y + (report.suspiciousIndicators?.length || 0) * 8 + 15
+    doc.setFontSize(12)
+    doc.setTextColor(255, 193, 7)
+    doc.text('IMPORTANT PRECAUTIONS:', 10, y)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(40, 40, 40)
+    ;(report.precautions || []).forEach((p: string, i: number) => {
+      doc.text(`⚠ ${p}`, 14, y + 10 + i * 8)
+    })
+    y = y + 10 + (report.precautions?.length || 0) * 8 + 10
+    doc.setFontSize(12)
+    doc.setTextColor(0, 153, 255)
+    doc.text('RECOMMENDED COUNTERMEASURES:', 10, y)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(40, 40, 40)
+    ;(report.countermeasures || []).forEach((c: string, i: number) => {
+      doc.text(`✓ ${c}`, 14, y + 10 + i * 8)
+    })
+    if (report.recommendation) {
+      y = y + 10 + (report.countermeasures?.length || 0) * 8 + 10
+      doc.setFontSize(12)
+      doc.setTextColor(255, 0, 0)
+      doc.text(`Recommendation: ${report.recommendation}`, 10, y)
+    }
     doc.save(`${report.fileName || 'report'}.pdf`)
   }
 
@@ -303,6 +361,48 @@ export default function ReportPage() {
                     >
                       <AlertTriangle className="w-5 h-5 text-red-400 mt-0.5 flex-shrink-0" />
                       <p className="text-red-300">{indicator}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Precautions */}
+            {report.precautions && report.precautions.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-amber-400 flex items-center space-x-2">
+                  <AlertTriangle className="w-6 h-6" />
+                  <span>Important Precautions</span>
+                </h3>
+                <div className="space-y-3">
+                  {report.precautions.map((precaution, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start space-x-3 p-4 bg-amber-500/10 border border-amber-500/20 rounded-xl"
+                    >
+                      <span className="text-amber-400 mt-0.5">⚠</span>
+                      <p className="text-amber-300">{precaution}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Countermeasures */}
+            {report.countermeasures && report.countermeasures.length > 0 && (
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-cyan-400 flex items-center space-x-2">
+                  <Shield className="w-6 h-6" />
+                  <span>Recommended Countermeasures</span>
+                </h3>
+                <div className="space-y-3">
+                  {report.countermeasures.map((countermeasure, index) => (
+                    <div
+                      key={index}
+                      className="flex items-start space-x-3 p-4 bg-cyan-500/10 border border-cyan-500/20 rounded-xl"
+                    >
+                      <Shield className="w-4 h-4 text-cyan-400 mt-0.5 flex-shrink-0" />
+                      <p className="text-cyan-300">{countermeasure}</p>
                     </div>
                   ))}
                 </div>
