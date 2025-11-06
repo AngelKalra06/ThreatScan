@@ -2,7 +2,7 @@
 
 import React from "react"
 import { useRouter } from "next/navigation"
-import { signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth"
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signInWithRedirect, getRedirectResult } from "firebase/auth"
 import { auth } from "@/lib/firebase"
 
 const googleProvider = new GoogleAuthProvider()
@@ -44,6 +44,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe()
   }, [])
 
+  // Handle Google redirect sign-in completion
+  React.useEffect(() => {
+    // Only attempt to resolve redirect result on client after mount
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result && result.user) {
+          router.push("/")
+        }
+      })
+      .catch((error) => {
+        // Surface in console for easier prod debugging
+        console.error("Google redirect result error:", error)
+      })
+  }, [router])
+
   const login = async (email: string, password: string) => {
     try {
       await signInWithEmailAndPassword(auth, email, password)
@@ -70,6 +85,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/")
     } catch (error) {
       console.error("Google login error:", error)
+      // Fallback to redirect if popup is blocked or unsupported
+      const code = (error as any)?.code as string | undefined
+      if (code === "auth/popup-blocked" || code === "auth/popup-closed-by-user" || code === "auth/operation-not-supported-in-this-environment") {
+        await signInWithRedirect(auth, googleProvider)
+        return
+      }
       throw error
     }
   }

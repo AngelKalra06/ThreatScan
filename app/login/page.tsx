@@ -45,6 +45,10 @@ export default function LoginPage() {
         errorMessage = "Too many failed attempts. Please try again later."
       }
       
+      // Append code for easier troubleshooting in production
+      if (err?.code) {
+        errorMessage += ` (${err.code})`
+      }
       setError(errorMessage)
     } finally {
       setIsSubmitting(false)
@@ -67,7 +71,10 @@ export default function LoginPage() {
       } else if (err.code === "auth/account-exists-with-different-credential") {
         errorMessage = "An account already exists with this email. Please use email/password sign-in."
       }
-      
+      // Show raw code for visibility
+      if (err?.code) {
+        errorMessage += ` (${err.code})`
+      }
       setError(errorMessage)
     } finally {
       setIsGoogleLoading(false)
